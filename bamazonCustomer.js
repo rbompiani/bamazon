@@ -37,26 +37,48 @@ function selectAll() {
 
 // -------- QUERY PRODUCT BY ID ------------
 function selectProduct(id, units) {
+
+    // construct query string with variables
     var sql = "SELECT * FROM ?? WHERE ?? = ?";
     var inserts = ['products', 'item_id', id];
     sql = mysql.format(sql, inserts);
+
+    // query the database for specific product
     connection.query(sql, function(err, res) {
         if (err) throw err;
+
+        //store the product as a variable
         var product = res[0]; 
+
+        // check to see if there are enough products on hand to sell
         if (units>product.stock_quantity){
             console.log("I'm sorry, there are not enough units available in our warehouse");
             customerInput();
         } else {
+            var newStock = parseInt(product.stock_quantity)-units;
+            updateStock(id, newStock);
             var totalCost = product.price*units;
             console.log("Thank you for purchasing "+units+" units of "+product.product_name + " @ $"+product.price+" EA");
-            console.log("Your total is $"+totalCost);
-            connection.end();
+            console.log("Your total is $"+totalCost.toFixed(2));
         }
         
     });
 }
 
-// -------- Customer Input ------------
+// -------- PURCHASE ITEMS ------------
+function updateStock(id, newStock){
+    // construct query string with variables
+    var stock = "UPDATE products SET stock_quantity = ? WHERE ?? = ?";
+    var inserts = [newStock, 'item_id', id];
+    stock = mysql.format(stock, inserts); 
+    
+    connection.query(stock, function(err, res){
+        if (err) throw err;
+        connection.end();
+    })
+}
+
+// -------- CUSTOMER INPUT ------------
 // Create a "Prompt" with a series of questions.
 
 function customerInput(){
