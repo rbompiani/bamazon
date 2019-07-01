@@ -23,7 +23,7 @@ connection.connect(function(err) {
     selectAll();
 });
 
-// -------- QUERY PRODUCTS ------------
+// -------- QUERY ALL PRODUCTS ------------
 function selectAll() {
     connection.query("SELECT item_id, product_name, price FROM products", function(err, res) {
         if (err) throw err;
@@ -31,50 +31,64 @@ function selectAll() {
         products.forEach(element => {
             console.log("#"+element.item_id+" "+element.product_name+" $"+element.price);
         });
-        connection.end();
+        customerInput();
     });
 }
 
-/*
-// -------- USER INPUT ------------
+// -------- QUERY PRODUCT BY ID ------------
+function selectProduct(id, units) {
+    var sql = "SELECT * FROM ?? WHERE ?? = ?";
+    var inserts = ['products', 'item_id', id];
+    sql = mysql.format(sql, inserts);
+    connection.query(sql, function(err, res) {
+        if (err) throw err;
+        var product = res[0]; 
+        if (units>product.stock_quantity){
+            console.log("I'm sorry, there are not enough units available in our warehouse");
+            customerInput();
+        } else {
+            var totalCost = product.price*units;
+            console.log("Thank you for purchasing "+units+" units of "+product.product_name + " @ $"+product.price+" EA");
+            console.log("Your total is $"+totalCost);
+            connection.end();
+        }
+        
+    });
+}
+
+// -------- Customer Input ------------
 // Create a "Prompt" with a series of questions.
-inquirer
-  .prompt([
-    // Here we create a basic text prompt.
-    {
-      type: "input",
-      message: "What is your name?",
-      name: "username"
-    },
-    // Here we create a basic password-protected text prompt.
-    {
-      type: "password",
-      message: "Set your password",
-      name: "password"
-    },
-    // Here we give the user a list to choose from.
-    {
-      type: "list",
-      message: "Which Pokemon do you choose?",
-      choices: ["Bulbasaur", "Squirtle", "Charmander"],
-      name: "pokemon"
-    },
-    // Here we ask the user to confirm.
-    {
-      type: "confirm",
-      message: "Are you sure:",
-      name: "confirm",
-      default: true
-    }
-  ])
-  .then(function(inquirerResponse) {
-    // If the inquirerResponse confirms, we displays the inquirerResponse's username and pokemon from the answers.
-    if (inquirerResponse.confirm) {
-      console.log("\nWelcome " + inquirerResponse.username);
-      console.log("Your " + inquirerResponse.pokemon + " is ready for battle!\n");
-    }
-    else {
-      console.log("\nThat's okay " + inquirerResponse.username + ", come again when you are more sure.\n");
-    }
-  });
-  */
+
+function customerInput(){
+    inquirer
+    .prompt([
+        // Ask customer what to buy
+        {
+        type: "input",
+        message: "Please enter the id # of the product you wish to purchase:",
+        name: "id"
+        },
+        // ask customer how many to buy
+        {
+        type: "input",
+        message: "Number of units to purchase:",
+        name: "units"
+        }
+    ])
+    .then(function(inquirerResponse) {
+        // select the item from the database
+        selectProduct(parseInt(inquirerResponse.id), parseInt(inquirerResponse.units));
+
+        /*
+        if (inquirerResponse.confirm) {
+        console.log("\nWelcome " + inquirerResponse.username);
+        console.log("Your " + inquirerResponse.pokemon + " is ready for battle!\n");
+        }
+        else {
+        console.log("\nThat's okay " + inquirerResponse.username + ", come again when you are more sure.\n");
+        }
+        */
+    });
+}
+
+  
