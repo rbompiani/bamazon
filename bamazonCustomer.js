@@ -17,13 +17,18 @@ var connection = mysql.createConnection({
 });
 
 // -------- CONNECT TO DATABASE ------------
+// create initial database connection -> relay to select all products
+
 connection.connect(function(err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
     selectAll();
 });
 
+
 // -------- QUERY ALL PRODUCTS ------------
+// select all products from the database and console log them -> relay to customer input
+
 function selectAll() {
     connection.query("SELECT item_id, product_name, price FROM products", function(err, res) {
         if (err) throw err;
@@ -35,7 +40,12 @@ function selectAll() {
     });
 }
 
+
 // -------- QUERY PRODUCT BY ID ------------
+// select single item from database by customer chosen id
+    // *Sufficient quantities -> route to update database quantities
+    // *Insufficient Quantities -> route back to customer input
+
 function selectProduct(id, units) {
 
     // construct query string with variables
@@ -65,7 +75,10 @@ function selectProduct(id, units) {
     });
 }
 
+
 // -------- PURCHASE ITEMS ------------
+// after purchase, update the database to reflect new quantity available -> terminate application
+
 function updateStock(id, newStock){
     // construct query string with variables
     var stock = "UPDATE products SET stock_quantity = ? WHERE ?? = ?";
@@ -78,8 +91,9 @@ function updateStock(id, newStock){
     })
 }
 
+
 // -------- CUSTOMER INPUT ------------
-// Create a "Prompt" with a series of questions.
+// Ask customers which units to buy, and how many -> route to select identified product
 
 function customerInput(){
     inquirer
@@ -100,16 +114,6 @@ function customerInput(){
     .then(function(inquirerResponse) {
         // select the item from the database
         selectProduct(parseInt(inquirerResponse.id), parseInt(inquirerResponse.units));
-
-        /*
-        if (inquirerResponse.confirm) {
-        console.log("\nWelcome " + inquirerResponse.username);
-        console.log("Your " + inquirerResponse.pokemon + " is ready for battle!\n");
-        }
-        else {
-        console.log("\nThat's okay " + inquirerResponse.username + ", come again when you are more sure.\n");
-        }
-        */
     });
 }
 
