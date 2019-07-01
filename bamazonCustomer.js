@@ -20,14 +20,17 @@ var connection = mysql.createConnection({
 connection.connect(function(err) {
     if (err) throw err;
     console.log("connected as id " + connection.threadId);
-    afterConnection();
+    selectAll();
 });
 
 // -------- QUERY PRODUCTS ------------
-function afterConnection() {
-    connection.query("SELECT * FROM products", function(err, res) {
+function selectAll() {
+    connection.query("SELECT item_id, product_name, price FROM products", function(err, res) {
         if (err) throw err;
-        console.log(res);
+        var products = res;       
+        products.forEach(element => {
+            console.log("#"+element.item_id+" "+element.product_name+" $"+element.price);
+        });
         connection.end();
     });
 }
